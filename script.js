@@ -63,11 +63,30 @@ weddingAudio.addEventListener("error", () => {
   toast("The wedding song could not be loaded. Please try again.");
 });
 
+function startMusicOnInteraction(event) {
+  if (event.type === "keydown" && event.repeat) return;
+  if (event.target instanceof Element && event.target.closest("#music-play-toggle")) return;
+  if (!weddingAudio.paused) return;
+
+  void weddingAudio.play().then(() => {
+    updateMusicControls(true);
+    document.removeEventListener("pointerdown", startMusicOnInteraction);
+    document.removeEventListener("keydown", startMusicOnInteraction);
+  }).catch(() => {
+    toast("The wedding song could not be played.");
+  });
+}
+
+document.addEventListener("pointerdown", startMusicOnInteraction);
+document.addEventListener("keydown", startMusicOnInteraction);
+
 void weddingAudio.play().then(() => {
   updateMusicControls(true);
+  document.removeEventListener("pointerdown", startMusicOnInteraction);
+  document.removeEventListener("keydown", startMusicOnInteraction);
 }).catch(() => {
   setMusicPanelOpen(true);
-  toast("Tap Play song to start the music.");
+  toast("Tap or press a key to start the music.");
 });
 
 musicToggle.addEventListener("click", () => {
