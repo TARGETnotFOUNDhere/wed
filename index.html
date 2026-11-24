@@ -175,6 +175,23 @@
     <button class="lightbox-close" aria-label="Close image preview">×</button>
     <img id="lightbox-image" src="" alt="Invitation card enlarged">
   </div>
+  <div class="music-widget">
+    <section class="music-panel" id="music-panel" aria-label="Wedding song player" hidden>
+      <div class="music-panel-heading">
+        <p>Our Wedding Song <span aria-hidden="true">❤️</span></p>
+        <button class="music-close" id="music-close" type="button" aria-label="Minimize music player">−</button>
+      </div>
+      <audio class="music-video" id="wedding-audio" preload="auto" autoplay>
+        <source src="assets/tu-mileya.mp3" type="audio/mpeg">
+      </audio>
+      <button class="music-play-toggle" id="music-play-toggle" type="button">
+        <span aria-hidden="true">▶</span> Play song
+      </button>
+    </section>
+    <button class="music-toggle" id="music-toggle" type="button" aria-label="Open wedding music player" aria-expanded="false">
+      <span class="music-note" aria-hidden="true">♫</span>
+    </button>
+  </div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <script src="script.js"></script>
 </body>

@@ -35,6 +35,59 @@ $(".lightbox-close").addEventListener("click", closeLightbox);
 $("#lightbox").addEventListener("click", e => { if(e.target.id === "lightbox") closeLightbox(); });
 document.addEventListener("keydown", e => { if(e.key === "Escape") closeLightbox(); });
 
+// Wedding song player using the downloaded MP3 file.
+const musicPanel = $("#music-panel");
+const musicToggle = $("#music-toggle");
+const musicPlayToggle = $("#music-play-toggle");
+const weddingAudio = $("#wedding-audio");
+
+function setMusicPanelOpen(open) {
+  musicPanel.hidden = !open;
+  musicToggle.setAttribute("aria-expanded", String(open));
+}
+
+function updateMusicControls(playing) {
+  musicToggle.classList.toggle("is-playing", playing);
+  musicToggle.setAttribute("aria-label", playing ? "Show wedding music player" : "Open wedding music player");
+  musicPlayToggle.innerHTML = playing
+    ? '<span aria-hidden="true">Ⅱ</span> Pause song'
+    : '<span aria-hidden="true">▶</span> Play song';
+  musicPlayToggle.disabled = false;
+}
+
+weddingAudio.addEventListener("play", () => updateMusicControls(true));
+weddingAudio.addEventListener("pause", () => updateMusicControls(false));
+weddingAudio.addEventListener("ended", () => updateMusicControls(false));
+weddingAudio.addEventListener("error", () => {
+  updateMusicControls(false);
+  toast("The wedding song could not be loaded. Please try again.");
+});
+
+void weddingAudio.play().then(() => {
+  updateMusicControls(true);
+}).catch(() => {
+  setMusicPanelOpen(true);
+  toast("Tap Play song to start the music.");
+});
+
+musicToggle.addEventListener("click", () => {
+  const isOpen = musicPanel.hidden === false;
+  setMusicPanelOpen(!isOpen);
+});
+
+$("#music-close").addEventListener("click", () => setMusicPanelOpen(false));
+musicPlayToggle.addEventListener("click", async () => {
+  if (weddingAudio.paused) {
+    try {
+      await weddingAudio.play();
+    } catch {
+      toast("The wedding song could not be played.");
+    }
+  } else {
+    weddingAudio.pause();
+  }
+});
+
 // Share / copy link
 $("#share-button").addEventListener("click", async () => {
   const data = {title:"Raudra & Sanchi — Wedding Celebrations", text:"Join us for the wedding celebrations of Raudra & Sanchi, 3, 4 and 6 December 2026 in Mumbai.", url:location.href};
