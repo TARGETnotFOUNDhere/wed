@@ -36,66 +36,48 @@ $("#lightbox").addEventListener("click", e => { if(e.target.id === "lightbox") c
 document.addEventListener("keydown", e => { if(e.key === "Escape") closeLightbox(); });
 
 // Wedding song player using the downloaded MP3 file.
-const musicPanel = $("#music-panel");
 const musicToggle = $("#music-toggle");
-const musicPlayToggle = $("#music-play-toggle");
 const weddingAudio = $("#wedding-audio");
-
-function setMusicPanelOpen(open) {
-  musicPanel.hidden = !open;
-  musicToggle.setAttribute("aria-expanded", String(open));
-}
+weddingAudio.volume = 0.7;
 
 function updateMusicControls(playing) {
   musicToggle.classList.toggle("is-playing", playing);
-  musicToggle.setAttribute("aria-label", playing ? "Show wedding music player" : "Open wedding music player");
-  musicPlayToggle.innerHTML = playing
-    ? '<span aria-hidden="true">Ⅱ</span> Pause song'
-    : '<span aria-hidden="true">▶</span> Play song';
-  musicPlayToggle.disabled = false;
+  musicToggle.setAttribute("aria-label", playing ? "Pause wedding music" : "Play wedding music");
+  musicToggle.setAttribute("aria-pressed", String(playing));
 }
 
 weddingAudio.addEventListener("play", () => updateMusicControls(true));
 weddingAudio.addEventListener("pause", () => updateMusicControls(false));
-weddingAudio.addEventListener("ended", () => updateMusicControls(false));
 weddingAudio.addEventListener("error", () => {
   updateMusicControls(false);
   toast("The wedding song could not be loaded. Please try again.");
 });
 
+function stopMusicRetry() {
+  document.removeEventListener("pointerdown", startMusicOnInteraction);
+  document.removeEventListener("keydown", startMusicOnInteraction);
+}
+
+function handleMusicPlayFailure(error) {
+  if (error.name === "NotAllowedError" || error.name === "AbortError") return;
+  toast("The wedding song could not be played.");
+}
+
 function startMusicOnInteraction(event) {
   if (event.type === "keydown" && event.repeat) return;
-  if (event.target instanceof Element && event.target.closest("#music-play-toggle")) return;
+  if (event.target instanceof Element && event.target.closest("#music-toggle")) return;
   if (!weddingAudio.paused) return;
 
-  void weddingAudio.play().then(() => {
-    updateMusicControls(true);
-    document.removeEventListener("pointerdown", startMusicOnInteraction);
-    document.removeEventListener("keydown", startMusicOnInteraction);
-  }).catch(() => {
-    toast("The wedding song could not be played.");
-  });
+  void weddingAudio.play().then(stopMusicRetry).catch(handleMusicPlayFailure);
 }
 
 document.addEventListener("pointerdown", startMusicOnInteraction);
 document.addEventListener("keydown", startMusicOnInteraction);
 
-void weddingAudio.play().then(() => {
-  updateMusicControls(true);
-  document.removeEventListener("pointerdown", startMusicOnInteraction);
-  document.removeEventListener("keydown", startMusicOnInteraction);
-}).catch(() => {
-  setMusicPanelOpen(true);
-  toast("Tap or press a key to start the music.");
-});
+void weddingAudio.play().then(stopMusicRetry).catch(handleMusicPlayFailure);
 
-musicToggle.addEventListener("click", () => {
-  const isOpen = musicPanel.hidden === false;
-  setMusicPanelOpen(!isOpen);
-});
-
-$("#music-close").addEventListener("click", () => setMusicPanelOpen(false));
-musicPlayToggle.addEventListener("click", async () => {
+musicToggle.addEventListener("click", async () => {
+  stopMusicRetry();
   if (weddingAudio.paused) {
     try {
       await weddingAudio.play();
